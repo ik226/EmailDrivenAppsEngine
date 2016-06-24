@@ -205,3 +205,11 @@ function userDataExists(email, callback) {
  		//console.log(cname + "=" + cvalue + "; " + domain + expires)
  		document.cookie = cname + "=" + cvalue + "; " + domain + expires;
  }
+
+var popit = true;
+window.onbeforeunload = function() { 
+     if(popit == true) {
+          popit = false;
+          return "Are you sure you want to leave?"; 
+     }
+}
