@@ -17,26 +17,26 @@ if (getCookie('loading') != '') {
 			console.log('curr load status: ', e);
 			if (e == 0) {
 				console.log('pending')
-        timer =timer+5;
+        			timer =timer+5;
 				$('#loadingDivProgress').html(timer+'%');
 				t = setTimeout(function () {
 						startTime()
 					}, 2000);
 			} else if (e == -1) {
 				console.log('errpor 11');
-        alert('error 11. Email not in DB. Refresh Page');
+        			alert('error 11. Email not in DB. Refresh Page');
 			} else if (e == 1) {
 				console.log('loaded')
 				setCookie('loading', 0, 0);
 				setCookie('email', 0, 0);
-        setCookie('email', email, 1);
-        $('#loadingDivMsg').slideUp();
-        $('#existUserDivEmail').html(email);
+				setCookie('email', email, 1);
+        			$('#loadingDivMsg').slideUp();
+        			$('#existUserDivEmail').html(decodeURIComponent(email)); // decode "%40" to "@"
 				$('#existUserDiv').slideDown();
         
 			} else {
 				consoole.log('error10')
-        alert('error 10. Unknown. Refresh Page');
+        			alert('error 10. Unknown. Refresh Page');
 			}
 		})
 	}
@@ -73,8 +73,8 @@ else {
 			else {
 				console.log('yes data for email');
 				$('#emailDiv').slideUp();
-        $('#existUserDivEmail').html(email);
-        setCookie('email', email, 1);
+        			$('#existUserDivEmail').html(decodeURIComponent(email)); // decode "%40" to "@"
+        			setCookie('email', email, 1);
 				$('#existUserDiv').slideDown();
 				return 1;
 			}
