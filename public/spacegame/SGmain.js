@@ -61,8 +61,23 @@ require(["globals", "utils", "player", "controller", "view"],
 		//gamedata callback
 		function gameDataCB(err, incoming, resJson) {
 			if (err) {
-				alert(err);
+				//TODO: handle error message in html 
+				//(update) add styles 
+				
+				// solution: instead of displaying error as alert message, 
+				// added text as html element
+				// however, the game runs behind regardlessly at #gamePage, which is hidden forcefully.
+				//
+				var infopage = document.getElementById("infoPage");
+				infopage.style.display = ""
+				var text = infopage.innerHTML="Uh oh! It seems you haven't received" + 
+				" and/or replied to any email within the last 30 days." + "<br>" +
+				 " Try reloading and playing with a more active account."
+				infopage.style.color = "white"
+				document.getElementById("gamePage").style.display = "none"
+				//alert(err);
 				return;
+				
 			}
 			GLOBAL.LOADING--;
 			if (incoming) {
