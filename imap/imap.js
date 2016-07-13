@@ -83,6 +83,9 @@ function openInboxCallbackCode(err, box, imap, userEmail, cb) {
     return
   }
   var dateXDaysBack = new Date().subtractDays(GLOBALS.daysOfEmail).toDateString();
+  var dateXDaysBack = new Date();
+  dateXDaysBack.setDate(dateXDaysBack.getDate() - GLOBALS.daysOfEmail);
+  dateXDaysBack.toDateString(); //make sure the criteria format for 'SINCE'
   imap.search([ 'ALL', ['SINCE', dateXDaysBack] ], function(err, results) {
     if (err) {
       console.log("error when calling imap.search: "+ err);
