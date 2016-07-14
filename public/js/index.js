@@ -8,7 +8,7 @@ if (getCookie('loading') != '') {
 	$('#loadingDiv').show();
 	console.log('we will start after loading complete');
 	var email = getCookie('email');
-  $('#loadingDivEmail').html (email);
+  $('#loadingDivEmail').html (decodeURIComponent(email));
 	console.log('email: ', email);
 	var timer=0;
   //load status
