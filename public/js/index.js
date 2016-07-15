@@ -8,7 +8,7 @@ if (getCookie('loading') != '') {
 	$('#loadingDiv').show();
 	console.log('we will start after loading complete');
 	var email = getCookie('email');
-  $('#loadingDivEmail').html (email);
+  $('#loadingDivEmail').html (decodeURIComponent(email));
 	console.log('email: ', email);
 	var timer=0;
   //load status
@@ -17,6 +17,7 @@ if (getCookie('loading') != '') {
 			console.log('curr load status: ', e);
 			if (e == 0) {
 				console.log('pending')
+                $('#container').slideDown();
         			timer =timer+5;
 				$('#loadingDivProgress').html(timer+'%');
 				t = setTimeout(function () {
@@ -33,6 +34,7 @@ if (getCookie('loading') != '') {
         			$('#loadingDivMsg').slideUp();
         			$('#existUserDivEmail').html(decodeURIComponent(email)); // decode "%40" to "@"
 				$('#existUserDiv').slideDown();
+                $('#container').slideDown();
         
 			} else {
 				consoole.log('error10')
@@ -45,34 +47,42 @@ if (getCookie('loading') != '') {
 //else, normal visit
 else {
 	console.log('normal visit');
-	$("#emailDiv").show();
+	$("#newUserDiv").show();
 
-	$("#emailDivPlay").click(function () {
-		var email = $('#emailDivEmail').val();
+	$("#newUserDivSubmit").click(function () {
+		var email = $('#newUserDivEmail').val();
 		if (!validateEmail(email)) {
-			$('#emailDivEmail').val('invalid email')
+			$('#newUserDivEmail').val('Invalid Email')
 			return 0;
 		}
 		userDataExists(email, function (exists) {
 			//email data not exist
 			if (!exists) {
 				console.log('no data for email');
-				$('#emailDiv').slideUp();
+				/***$('#emailDiv').slideUp();
 				$('#newUserDiv').slideDown();
-				$('#newUserDivEmail').val(email);
-				$("#newUserDivSubmit").click(function () {
-					console.log('yo');
-					var serial = $('#newUserDivForm').serialize();
-					console.log('form serial:', serial);
-					var url = "/login?" + serial;
-					window.location.assign(url);
-				});
-				return 0;
+				$('#newUserDivEmail').val(email);***/
+				//$("#newUserDivSubmit").click(function () {
+				console.log('yo');
+				var serial = $('#newUserDivForm').serialize();
+				console.log('form serial:', serial);
+				var url = "/login?" + serial;
+				window.location.assign(url);
+            //});
+                return 0;
 			}
 			//email data exists
 			else {
 				console.log('yes data for email');
-				$('#emailDiv').slideUp();
+                //$("#newUserDivSubmit").click(function () {
+                console.log('yo');
+				var serial = $('#newUserDivForm').serialize();
+				console.log('form serial:', serial);
+				var url = "/login?" + serial;
+				window.location.assign(url);
+				//});
+				return 0;
+				//$('#newUserDiv').slideUp();
         			$('#existUserDivEmail').html(decodeURIComponent(email)); // decode "%40" to "@"
         			setCookie('email', email, 1);
 				$('#existUserDiv').slideDown();
