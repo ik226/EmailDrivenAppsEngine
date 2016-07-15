@@ -82,7 +82,7 @@ function openInboxCallbackCode(err, box, imap, userEmail, cb) {
     console.log("error when calling openInbox: "+ err);
     return
   }
-  var dateXDaysBack = new Date().subtractDays(GLOBALS.daysOfEmail).toDateString();
+  //var dateXDaysBack = new Date().subtractDays(GLOBALS.daysOfEmail).toDateString();
   var dateXDaysBack = new Date();
   dateXDaysBack.setDate(dateXDaysBack.getDate() - GLOBALS.daysOfEmail);
   dateXDaysBack.toDateString(); //make sure the criteria format for 'SINCE'
