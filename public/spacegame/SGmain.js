@@ -71,7 +71,7 @@ require(["globals", "utils", "player", "controller", "view"],
 				var infopage = document.getElementById("infoPage");
 				infopage.style.display = ""
 				var text = infopage.innerHTML="Uh oh! It seems you haven't received" + 
-				" and/or replied to any email within the last 30 days." + "<br>" +
+				" and/or replied to any email within the last 30 days." + "<br><br>" +
 				 " Try reloading and playing with a more active account."
 				infopage.style.color = "white"
 				document.getElementById("gamePage").style.display = "none"
