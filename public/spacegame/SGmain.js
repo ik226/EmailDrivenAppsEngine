@@ -15,6 +15,15 @@ require(["globals", "utils", "player", "controller", "view"],
 	}
 
 	start(email);
+	
+	//exit alert 
+	var popit = true;
+	window.onbeforeunload = function() { 
+     		if(popit == true) {
+          		popit = false;
+          		return "Are you sure you want to leave?"; 
+     		}
+	}
 
 	function start(email) {
 		//return
