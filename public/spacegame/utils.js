@@ -10,13 +10,14 @@ define(function () {
       var localHour = d.getHours(); //converts to local timezone;
       
       var str = "";
-      if(localHour<12){
-        str = localHour + ":00 AM";
-      }else if (localHour == 12 ){
-        str = localHour + " Noon";
-      }
-      else{
-        str = (localHour-12) + ":00 PM";
+      if(localHour==0) {
+      	str = "12:00AM (Midnight)";
+      }else if (localHour==12){
+        str = localHour+":00PM (Noon)";
+      }else if(localHour<12){
+        str = localHour + ":00AM";
+      }else{
+        str = (localHour-12)+":00PM";
       }      
       return str;
 		},
