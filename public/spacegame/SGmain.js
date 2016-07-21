@@ -5,8 +5,8 @@ require(["globals", "utils", "player", "controller", "view"],
 	//Ran after all requires (and their dependencies have loaded)
 
 	var email = Utils.getCookie('email');
-  email = email.replace("%40", "@");
-  console.log(email)
+  	email = email.replace("%40", "@");
+  	//console.log(email)
   
 	if (!Utils.validateEmail(email)) {
 		//alert(email + ' - invalid cookies. Will redirect to home.');
@@ -34,7 +34,7 @@ require(["globals", "utils", "player", "controller", "view"],
 				Controller.update(p);
 				View.draw(p);
 			}, 1000 / g.FPS);
-      g.SOUND.play("backgroundMusic", 0, true);
+      			g.SOUND.play("backgroundMusic", 0, true);
       
 		}
 
