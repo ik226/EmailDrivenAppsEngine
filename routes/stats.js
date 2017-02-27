@@ -4,6 +4,10 @@ Code for the query page. Called by routes.js
 
  */
 var mongoDbApi = require('../mongodb/api.js');
+var imap = require('../imap/imap.js');
+var oauth2 = require('../oauth2/oauth2.js');
+var constants = require('../constants.js');
+
 module.exports = function (req, res) {
 
 	var id = req.query.id;
