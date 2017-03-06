@@ -7,6 +7,7 @@
  
 var querystring = require("querystring");
 var request = require('request');
+var constants = require('../constants.js');
 
 //TODO: reset keys n move sensitive info to external file
 // Keys n Constants
@@ -14,6 +15,16 @@ var GOOGLE_CLIENT_ID = '788164556802-77032h0shl056j1jkdpv58irspq6kavj.apps.googl
 var GOOGLE_CLIENT_SECRET = '-g2U1yx5rnajiQub9y5CJPc8'; //should be kept secret
 var BASE_URL = 'https://accounts.google.com/';
 
+//googleapis with oauth2client
+var googleapis = require('googleapis');
+var OAuth2Client = googleapis.auth.OAuth2;
+var oauth2Client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, constants.REDIRECT_URI);
+
+//request new access token and callback
+exports.genNewAccessToken = function(token, callback){
+	oauth2Client.credentials = token;
+	oauth2Client.refreshAccessToken(callback);
+}
 
 
 /* Generates a url that needs to be visited to get an authorization 

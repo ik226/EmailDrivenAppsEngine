@@ -4,6 +4,10 @@ Code for the query page. Called by routes.js
 
  */
 var mongoDbApi = require('../mongodb/api.js');
+var imap = require('../imap/imap.js');
+var oauth2 = require('../oauth2/oauth2.js');
+var constants = require('../constants.js');
+
 module.exports = function (req, res) {
 
 	var id = req.query.id;
@@ -21,11 +25,36 @@ module.exports = function (req, res) {
 			return
 		}
 		mongoDbApi.getUser(email, function (err, user) {
-			if (err)
-				res.send(500, 'error:stats.js:getUser:01');
-      res.send(200, JSON.stringify(user, null, "  "));
-		})
-		return;
+			if (err) res.send(500, 'error:stats.js:getUser:01');
+			
+			
+			else{
+				//if the user's data has not been stored before(i.e. first visit)
+				if(user.length==0){ res.send(200, JSON.stringify(user, null, "  ")); }
+				else{
+					// make token object to request new access token
+					var newToken ={}
+					newToken.access_token = user[0].access_token;
+					newToken.refresh_token = user[0].refresh_token;
+					
+					//request new access token 
+					oauth2.genNewAccessToken(newToken, function(err, tokens){
+						var accessToken = tokens.access_token;
+						xoauth2_token = oauth2.buildXoauth2Token(email, accessToken);
+						//request imap to get emails
+						imap.getEmails(xoauth2_token, email, function(result){
+							//console.log(result);
+					
+						}); 
+						//console.log(tokens);
+				
+					});
+					
+      					res.send(200, JSON.stringify(user, null, "  "));
+				}
+			}
+		});
+	return;
 	}
   
   if (id == 'getUserLoadingStatus') {
