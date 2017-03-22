@@ -17,19 +17,21 @@ exports.addUpdateUser = function (info, tokens) {
 		verified_email : info.verified_email || false,
 		refresh_token : tokens.refresh_token || '',
 		access_token : tokens.access_token || '',
-    role: info.role || 'unknown',
-    notes: info.notes || '',
-    loadingStatus: info.loadingStatus || 0
+    	role: info.role || 'unknown',
+    	notes: info.notes || '',
+    	loadingStatus: info.loadingStatus || 0
 	};
 
 	UserInfo.update({
 		email : info.email
 	}, //conditions
-		userInfo, //update val
+	
+	userInfo, //update val
 	{
 		safe : true,
 		upsert : true
 	}, //options
+	
 		function (err, numberAffected, raw) { //callback
 		if (err)
 			return console.log('Error:api.js:addUser:update');
@@ -42,7 +44,7 @@ exports.addUpdateUser = function (info, tokens) {
 exports.getAllUsers = function (callback) {
 	UserInfo.find(function (err, users) {
 		if (err) {
-			console.error(err);
+			//console.error(err);
 			callback('api.js:cantGetAllUsers')
 		} else {
 			callback(null, users)
@@ -82,7 +84,8 @@ exports.addUpdateEmailMsg = function (attrs, info, user, boxname) {
 		//flags: [String],
 		spam : isSpam,
 		msgid : attrs['x-gm-msgid'],
-		thrid : attrs['x-gm-thrid']
+		thrid : attrs['x-gm-thrid'],
+		size : attrs.size || 0
 	};
 
 	EmailMsg.update({
@@ -118,29 +121,34 @@ exports.getAllEmailMsg = function (callback) {
 
 exports.removeAllEmailMsg = function () {
 	try {
-		EmailMsg.collection.remove(function (err) {
-			if (err)
-				throw err;
-		});
+		EmailMsg.collection.remove({});
+		//EmailMsg.collection.remove(function (err) {
+		//	if (err)
+		//		throw err;
+		//});
 	} catch (err) {
 		console.log(err);
 	}
 }
 
 // updates the users email loading status. 1= ready, 0=pending, -1 error
-exports.setUserLoadingStatus = function(email, status, callback){
+// callback added
+// set cookies that the loading is completed 
+exports.setUserLoadingStatus = function(email, status, callback){ //omit input: callback 
   //
   var query = {email : email};
   
   UserInfo.update(query, {loadingStatus : status},
   	function (err, numberAffected, raw) {
   	  if (err){
-  		  console.log('error:api:setUserLoadingStatus',err)
-        return;
+  		  	console.log('error:api:setUserLoadingStatus',err)
+        	return;
       }
   	  //console.log('The number of updated documents was %d', numberAffected);
   	  //console.log('The raw response from Mongo was ', raw);
-    })
+    });
+	// callback: res.cookie('loading',1)
+	callback();
 }
 
 // gets the users email loading status. 1= ready, 0=pending, -1 error
@@ -160,8 +168,7 @@ exports.getUserLoadingStatus = function(email, callback){
 
 // Return the user matching username
 exports.getUser = function (email, callback) {
-	UserInfo
-	.find({
+	UserInfo.find({
 		email : email
 	})
 	//.where('name.last').equals('Ghost')
@@ -172,6 +179,14 @@ exports.getUser = function (email, callback) {
 	//.select('name email')
 	.exec(callback);
 
+}
+
+exports.getUserToken = function(email, callback){
+	UserInfo.find({
+		email: email
+	})
+	.select('access_token refresh_token')
+	.exec(callback);
 }
 
 // Return unique threads of a user
@@ -336,50 +351,73 @@ exports.getResponseTimes = function (email, callback) {
 exports.getEmailsGroupedByHour = function (email, incoming, callback) {
 	//console.log("\n\n\nGet EmailsGroupedByHour:\n\n")
 	//mongodb mapReduce doc at http://docs.mongodb.org/manual/core/map-reduce/
-
+	//console.log(this);
+	
 	var o = {};
 	o.scope = {
 		email : email
 	};
-	if (incoming === true)
+	
+	if (incoming === true){
 		o.query = {
 			user : email,
 			from : {
 				$ne : [[email]]
 			}
-		} //query filter
-	else
+		}
+	} //query filter
+	else{
 		o.query = {
 			user : email,
 			from : [[email]]
-		} //query filter
+		}
+	} //map function emits (key: hour, value: {To,CC,From,size}) pair
 	o.map = function () { //map func each msg
+		//printjson(this);
 		var hour;
-		if (!this.date instanceof Date) //not Date obj
+		if (!this.date instanceof Date) //if this.date is not Date obj
 			hour = -1;
 		else
 			hour = this.date.getUTCHours();
 		var value = {
 			numOfTo : [this.to.length],
 			numOfCc : [this.cc.length],
-			from : [this.from[0]]
+			from : [this.from[0]],
+			//add size
+			//size: this.size || 0
+			size : [this.size ? this.size : 0]
 		};
+		//printjson(value);
 		emit(hour, value)
 	}
 	o.reduce = function (hour, values) { //reduce func
+		printjson(values);
 		var ans = {
 			numOfTo : [],
 			numOfCc : [],
-			from : []
-		}
+			from : [],
+			//add size of email
+			//size: 0
+			size: []
+			
+			
+		};
+		
 		values.forEach(function (entry) {
+			//printjson(entry);
 			for (var i = 0; i < entry.numOfTo.length; i++) {
 				ans.numOfTo.push(entry.numOfTo[i]);
 				ans.numOfCc.push(entry.numOfCc[i]);
 				ans.from.push(entry.from[i]);
+				
+				//assign size
+				//ans.size = entry.size;
+				ans.size.push[entry.size[i]];
+				
 			}
-		})
-		return ans
+		});
+		//printjson(ans);
+		return ans;
 	}
 	o.finalize = function (hour, reducedValue) {
 		//THIS IS CALLED ONCE PER KEY(hour)
@@ -397,24 +435,30 @@ exports.getEmailsGroupedByHour = function (email, incoming, callback) {
 			obj.numOfTo = reducedValue.numOfTo[i];
 			obj.numOfCc = reducedValue.numOfCc[i];
 			obj.from = reducedValue.from[i];
+			//obj.size = reducedValue.size[i];
+			obj.size = reducedValue.size[i];
 			hourDataArray.push(obj)
 		}
 		return hourDataArray;
 	}
 
 	//results is an array of [{_id:hour, value:hourDataArray}]
-  //  hoursData is object {hour: hourDataArray, hour2:hour2DataArray...}
+  	//hoursData is object {hour: hourDataArray, hour2:hour2DataArray...}
+  
 	EmailMsg.mapReduce(o, function (err, results) {
 		//callback(err, results); return results //for debug
+		
 		if (results.length == 0) {
 			err = "no results for email: " + email;
 		}
 
 		var hoursData = {};
+		
+		
 		for (var i = 0; i < results.length; i++) {
 			hoursData[results[i]._id] = results[i].value
 		}
-		
+		//console.log(hoursData);
 		callback(err, hoursData)
 	})
 
