@@ -7,18 +7,20 @@ var mongoose = require('mongoose');
  
 var emailMsgSchema = mongoose.Schema(
       {
-      user: { type: String, index: true }, //the email address
-      from: { type: [String], index: true },
-      to: { type: [String], index: true },
-      cc: { type: [String], index: true },
-      bcc: { type: [String], index: true },
-      subject: String,
-      date: { type: Date, index: true },
-      labels: [String],
-      //flags: [String],
-      spam: { type: Boolean, index: true },
-      msgid: { type: String, index: true},
-      thrid: {type:String, index: true}
+     	user: { type: String, index: true }, //the email address
+     	from: { type: [String], index: true },
+    	to: { type: [String], index: true },
+      	cc: { type: [String], index: true },
+     	bcc: { type: [String], index: true },
+      	subject: String,
+      	date: { type: Date, index: true },
+      	labels: [String],
+      	//flags: [String],
+      	spam: { type: Boolean, index: true },
+      	msgid: { type: String, index: true },
+      	thrid: {type:String, index: true },
+		//RFC822 message size (byte)
+		size: {type:Number, index: true }  
       } 
     ); 
 //composite key
