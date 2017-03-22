@@ -18,18 +18,22 @@ define(function () {
 		CANVAS : canvas,
 		SOUND : Sound, //TODO: this should be imported
 		SPRITE : Sprite,
-    BACKGROUNDLINES : [],
+    	BACKGROUNDLINES : [],
 		PLAYERBULLETS : [],
-    ENEMIES: [],
-    KEYDOWN: keydown,
-    LOADING:3,
-    OUTGOINGEMAILDATA:[],
-    INCOMINGEMAILDATA:[],
-    RESTIME:0, //avg response time
-    GAMEHOUR:0,
-    HOURLENGTH:20, //how long (in seconds) is one hour in game time
-    HOURITR:0, //hour iteration number
-    HOURENEMYNUMBER:0,
-    GAMEMODE:'alldirection' //'leftrightonly', 'alldirection'
+    	ENEMIES: [],
+    	KEYDOWN: keydown,
+    	LOADING:3,
+    	OUTGOINGEMAILDATA:[],
+    	INCOMINGEMAILDATA:[],
+    	RESTIME:0, //avg response time
+    	GAMEHOUR:0,
+    	HOURLENGTH:20, //how long (in seconds) is one hour in game time
+    	HOURITR:0, //hour iteration number
+    	HOURENEMYNUMBER:0,
+    	GAMEMODE:'alldirection', //'leftrightonly', 'alldirection'
+		// GAMESTOP KEY
+		STOPKEY: null,
+		//enemy defeated counts
+		DEFEAT: 0
 	}
 });
