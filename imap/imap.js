@@ -6,8 +6,10 @@ var Imap = require('imap');
 var inspect = require('util').inspect;
 var fs = require('fs'), fileStream;
 var MailParser = require("mailparser").MailParser;
-var async = require('async')
-var mongoDbApi = require('../mongodb/api.js')
+var async = require('async');
+var mongoDbApi = require('../mongodb/api.js');
+
+
 
 var GLOBALS={};
 GLOBALS.daysOfEmail = 29;   // last x days of email to fetch
@@ -82,23 +84,28 @@ function openInboxCallbackCode(err, box, imap, userEmail, cb) {
     console.log("error when calling openInbox: "+ err);
     return
   }
-  //var dateXDaysBack = new Date().subtractDays(GLOBALS.daysOfEmail).toDateString();
-  var dateXDaysBack = new Date();
-  dateXDaysBack.setDate(dateXDaysBack.getDate() - GLOBALS.daysOfEmail);
-  dateXDaysBack.toDateString(); //make sure the criteria format for 'SINCE'
+  
+  // modified Date prototype where subtractDays function is added  (in prototypes.js)
+  var dateXDaysBack = new Date().subtractDays(GLOBALS.daysOfEmail).toDateString();
+  //which is functionally equivalent to following lines:
+  //var dateXDaysBack = new Date();
+  //dateXDaysBack.setDate(dateXDaysBack.getDate()-GLOBALS.daysOfEmail);
+  //dateXDaysBack.toDateString(); 
+  
   imap.search([ 'ALL', ['SINCE', dateXDaysBack] ], function(err, results) {
     if (err) {
       console.log("error when calling imap.search: "+ err);
       return
     }
     try{
-        var f = imap.fetch(results, { bodies: ['HEADER.FIELDS (FROM TO CC BCC SUBJECT REFERENCES INREPLYTO DATE )'] });
+		
+        var f = imap.fetch(results, { size: true, bodies: ['HEADER.FIELDS (FROM TO CC BCC SUBJECT REFERENCES INREPLYTO DATE )'] });
     
         f.once('error', function(err) {
           throw new Error('Fetch error: ' + err);          
         });
         f.once('end', function() {
-          //console.log('Done fetching all messages!', box.name);
+          console.log('Done fetching all messages!', box.name);
           cb(null, 'done:'+box.name+":"+userEmail);
         });
         f.on('message', function(msg, seqno) {
@@ -107,30 +114,41 @@ function openInboxCallbackCode(err, box, imap, userEmail, cb) {
               mailparser.on('error', function(err){
                 throw new Error('mailparse error: ' + err);
               })
-              msg.on('body', function(stream, info) {
-                stream.pipe(mailparser);
+              msg.on('body', function(stream, info) { 
+                  stream.pipe(mailparser);
               });
               // Get attrs and mail_object
               async.parallel([
                   function(callback){
                       msg.once('attributes', function(attrs) {
+						//console.log(attrs);
                         callback(null, attrs);
                       });
                   },
                   function(callback){
                       mailparser.on("end", function(mail_object){
-                          mail_object.from = makeFieldsArray(mail_object.from)
+						  
+						  //console.log(mail_object)
+						  mail_object.from = makeFieldsArray(mail_object.from);
                           mail_object.to = makeFieldsArray(mail_object.to);
                           mail_object.cc = makeFieldsArray(mail_object.cc);
                           mail_object.bcc = makeFieldsArray(mail_object.bcc);
-                          callback(null, mail_object);
+						  
+						  if (err) {
+							  callback(err);
+						  } else {
+							  //console.log(mail_object);
+						  	  callback(null, mail_object);
+					  	  }
                       });
                   }
               ],
               // results has attrs and mail_object
               function(err, results){
-                  if (err) throw err;
+                  if (err) console.log(err) //throw err;
+				  
                   var attrs = results[0];
+				  //console.log(attrs);
                   var info = results[1]; //mail_object
                   mongoDbApi.addUpdateEmailMsg(attrs, info, userEmail, box.name );
               });
@@ -185,5 +203,5 @@ function makeBoxesArray(arr, delimiter, boxes){
             arr.push(delimiter+key);
        }
     }   
-    return arr;0
+    return arr;
 }
