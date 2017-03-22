@@ -1,34 +1,67 @@
+//npm install amdefine
+/*
+if (typeof define != 'function' ){
+	var define = require('amdefine')(module);
+}
+*/
 define(function () {
+	//var http = require('http');
+	
 	return {
 		func1 : function () {
 			alert('f1')
 		},
+		
 		UTCHourToLocalHour : function (UTChour) {
 			var d = new Date();
-      d.setUTCHours(UTChour);
+      	  	d.setUTCHours(UTChour);
       
-      var localHour = d.getHours(); //converts to local timezone;
+      	  	var localHour = d.getHours(); //converts to local timezone;
       
-      var str = "";
-      if(localHour<12){
-        str = localHour + ":00 AM";
-      }else if (localHour == 12 ){
-        str = localHour + " Noon";
-      }
-      else{
-        str = (localHour-12) + ":00 PM";
-      }      
-      return str;
+      	  	var str = "";
+      	  	if(localHour<12){
+        		str = localHour + ":00 AM";
+      	  	}else if (localHour == 12 ){
+        		str = localHour + " Noon";
+      	  	}
+      	  	else{
+        		str = (localHour-12) + ":00 PM";
+      	  	}      
+      	  	return str;
 		},
+		
 		getJson : function (url, callback) {
 			//open url with GET. Convert response to JSON n return it.
 			//callback(err, json)
 			xmlhttp = new XMLHttpRequest();
+			
+			//it says it is good practice to "open" xhr before "onreadystatechange"
+			// async == false: the send() method does not return until the response is received.
+			// do we want this to be asynchronous? yes, we are retreiving email data (in JSON) as a 
+			// "whole" at once, not "piece by piece" each time 
+			// xmlhttp.open("GET", url, true);
+			/*
+				synchronous request is deprecated.....:
+					If async is false, current global object is a Window object, 
+					and the timeout attribute value is not zero 
+					or the responseType attribute value is not the empty string, 
+					then throw an InvalidAccessError exception.
+				It appears that our condition wouldn't cause trouble..
+				
+				we need helper that "aggregates" all pieces into a whole object 
+				after it completely received data 
+			*/
+			
+			xmlhttp.open("GET", url, true);
+			xmlhttp.addEventListener('load', function(){ console.log('utils.js getJson is loaded?'); })
+			
 			xmlhttp.onreadystatechange = function () {
 				if (xmlhttp.readyState == 0) {}
 				if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
 					//success
+					//console.log(xmlhttp.getResponseHeader('Set-Cookie'));
 					var res = xmlhttp.responseText;
+					console.log(res);
 					var resJson = JSON.parse(res);
 					callback(null, resJson);
 				} else if (xmlhttp.readyState == 4) {
@@ -36,9 +69,18 @@ define(function () {
 					callback('error loading json ' + url);
 				}
 			}
-			xmlhttp.open("GET", url, false);
+			
 			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			xmlhttp.send();
+			//if we want synchronous flow, then do not use onreadystatechange function and callback inside
+			/*
+			var res = xmlhttp.responseText;
+			console.log(typeof res);
+			if(typeof res == Object){
+				var resJson = JSON.parse(res);
+			}
+			callback(null, resJson);
+			*/
 		},
 		validateEmail : function (email) {
 			var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
