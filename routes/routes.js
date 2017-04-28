@@ -9,6 +9,7 @@
         app.listen(5001);
 */
 
+
 //Required modules
 var request = require('request');
 var async = require('async');
@@ -59,7 +60,8 @@ exports.home = function(req, res){
     @Stats Route
 */
 exports.stats = function(req, res){
-  stats(req, res);
+  	stats(req, res);
+
 }
 
 /*
@@ -174,30 +176,32 @@ exports.oauth2callback = function(req, res){
 exports.getEmails = function(req, res){
   var emailNToken = req.signedCookies.emailNToken;
   
-  if (typeof emailNToken === 'undefined')
+  if (typeof emailNToken === 'undefined'){
     return res.send('No cookies set');
-  
+	}
   var email = emailNToken.email;
   var access_token = emailNToken.access_token;
   
   var xoauth2_token = oauth2.buildXoauth2Token(email, access_token)
   
+  
+  //update cookie in callback
   imap.getEmails(xoauth2_token, email, function () {
-  	mongoDbApi.setUserLoadingStatus(email, 1);  
+  	mongoDbApi.setUserLoadingStatus(email, 1, function(){
+	    //var cookieVal = 1;
+		
+		// it causes error: can't get response header twice
+		// since oauth2callback already have res.cookie
+		// 
+	    //res.cookie('loading', 1);
+	    //res.cookie('email', email);
+  	});  
   });
   
-  var cookieVal = 1;
-  res.cookie('loading', '1');
-  res.cookie('email', email)
+  //TODO: update cookie in callback inside 
+  //mongoDbApi.setUserLoadingStatus(email, 1, function(){
+  // 														set cookie })
+  
   
   res.redirect('/');
-}
-
-/*
-    Remove all emails
-*/
-exports.removeEmails = function(req, res){
-    mongoDbApi.removeAllEmailMsg();
-    console.log('removeEmails');
-    res.send('remove func called');
 }

@@ -7,7 +7,7 @@
 -->
 <html>
 	<head>
-		<title>PlayMail - Play your Email Data!</title>
+		<title>Play Mail</title> <!-- new title needed? -->
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<meta name="description" content="" />
 		<meta name="keywords" content="" />
@@ -16,7 +16,8 @@
 		<script src="js/jquery.min.js"></script>
 		<script src="js/skel.min.js"></script>
 		<script src="js/init.js"></script>
-        <script src="js/index.js"></script>
+        <script data-main="js/index.js" src="js/require.js"></script>
+		
 		<noscript>
 			<link rel="stylesheet" href="css/skel-noscript.css" />
 			<link rel="stylesheet" href="css/style.css" />
@@ -36,56 +37,52 @@
 				
                 <footer id = "loadingDiv" style="display:none">
                     <div id = "loadingDivMsg">
-                        <span>Loading data from </span>
-                        <span id="loadingDivEmail">sample@gmail.com</span> 
+                        
+						<!--instruction during loading add style-->
+						<p>How to Play: <br> 
+You are the ship, and your goal is to defend yourself from the oncoming enemy ships that will appear as the day progresses (as the sun moves across the sky and the hours on the clock in the [top left corner of the screen] tick by). <br>
+
+The number of enemy ships corresponds to the number of emails you receive at that time of day, and the number of bullets you have to fire at those ships corresponds to the number of emails you send at that time of day.<br>
+
+You start with 3 lives — you can see how many you have left in the upper right hand corner. You gain XX points for each enemy you destroy and Y points for each “hour” you stay alive, and you level up at the end of each “day”. Try to survive as long as possible! If the game ends — either because you win or lose — feel free to restart and replay it as many times as you like.</p>
+                        <span>Loading Data</span>
+						<span id="loadingDivEmail" style="display:none">sample@gmail.com</span> 
                         (<span id="loadingDivProgress">29</span>) 
                     </div>
                     <a class="button" id="loadingDivPlay" style="display:none" >Start Game</a>
                 </footer>
                 
-                <!--<footer id="emailDiv" style="display:none">
+                <footer id="emailDiv" style="display:none">
                     <input class="button" id="emailDivEmail" type="email" name="email" placeholder="Enter email to start">
                     <a class="button" id="emailDivPlay">Play</a>
-                    <!--a href="#first" class="button scrolly">Proceed to second phase</a
-				</footer>-->
-
+                    <!--a href="#first" class="button scrolly">Proceed to second phase</a-->
+				</footer>
+                
                 <footer id = "newUserDiv" style="display:none">
-                    <h1>Please enter your email address and job role.</h1>
+                    <h1>We will need to read your email data before we can play.</h1>
+					<h1>Please enter your email address and job role.</h1>
                     
                     <form id="newUserDivForm">
                         <input class="button alt" id="newUserDivEmail" type="email" name="email" placeholder="Enter your email address">
                         <br/>
                         <select name="role" id = "role" class="button alt">
                             <option value="" disabled selected>Select your role</option>
-                            <option value="CU-UndergraduateStudent">Undergraduate Student</option>
-                            <option value="CU-MastersStudent">Masters Student</option>
-                            <option value="CU-DoctoralStudent">Doctoral Student</option>
+                            <option value="CU-UndergraduateDegree">Undergraduate Student</option>
+                            <option value="CU-ProfessionalDegree">Masters Student</option> <!-- mind option value : ProfessionalDegree <== Masters-->
+                            <option value="CU-DoctoralDegree">Doctoral Student</option>
                             <option value="CU-PostDoc">PostDoc</option>
-                            <option value="CU-Staff">Staff</option>
+							<option value="CU-Staff">Staff</option>
+							<!-- mind option value : AcademicStaff <== Staff-->
                             <option value="CU-Faculty">Faculty</option>
                             <option value="Other">Other</option>
                         </select>
                         <br/><br/>
-                        <a class="button" id="newUserDivSubmit">Next</a>
+                        <a class="button" id="newUserDivSubmit">Play!</a>
                     </form>
                 </footer>
                 <footer id = "existUserDiv" style="display:none">
-                    <h1>Data successfully loaded! Please read the instructions below, and press "Start Game" when you are ready to play.<!--span id = "existUserDivEmail">user@domain.com</span>--></h1>
+                    <h1>Data successfully loaded for the player <span id = "existUserDivEmail">user@domain.com</span> !</h1>
                     <a class="button" id="existUserDivStart">Start Game</a>
-                </footer>
-                <br>
-                <footer id="container" style="display:none">
-                <h1>How to Play:</h1>
-                <p>You are the ship, and your goal is to defend yourself from the oncoming enemy ships that will appear as the day progresses (i.e., as the hours of the day go by — see "Current Wave" in the top right corner of the screen).</p>
-                <p>Use the up and down arrow keys to move your ship and the left and right arrow keys to rotate your ship. Fire bullets using the XX key to destroy enemy ships and gain points — the bigger or faster the enemy ship, the more points you'll gain for destroying it. (Small ships = +XX points, medium ships = +YY points, big ships = +XX points). Your current number of points are shown in the upper left corner of the screen.</p>
-                <p>If you find yourself without any bullets to fire at enemies, you will just have to dodge them! Hitting an enemy will inflict damage upon you — the bigger or faster the enemy, the more points you'll lose. (Small ships = -XX points, medium ships = -xx points, large ships = -xx points).</p>
-                <p>The number of enemy ships that appear during a wave correspond to the number of emails you receive at that time of day. The number of bullets you have to fire at those ships corresponds to the number of emails you send at that time of day. Enemy attributes represent characteristics of that email:</p>
-                <ul>
-                    <li>Enemy Color: Domain of sender's email address (Red = Cornell; Blue = Non-Cornell academic (xxx@yyy.edu); Green = Gmail, Hotmail, or Yahoo; Gray: Other domains).</li>
-                    <li>Enemy Size: Length of that received email.</li>
-                    <li>Enemy Speed: Number of recipients of that received email (enemy is fastest if you are the only recipient and gets slower the higher the number of other recipients).</li>
-                </ul>
-                <p>Try to survive as long as possible! If the game ends — either because you win or lose — feel free to restart and replay it as many times as you like.</p>
                 </footer>
 			</section>
 			
