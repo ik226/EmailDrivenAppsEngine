@@ -1,9 +1,9 @@
 
 $( document ).ready(function() {
   
-console.log('Entered Page');
-console.log('loading cookie val: ', getCookie('loading'));
-console.log(document.cookie.split(';'));
+//console.log('Entered Page');
+//console.log('loading cookie val: ', getCookie('loading'));
+//console.log(document.cookie.split(';'));
 
 
 // If loading cookie set,then wait for email fetch complete.
@@ -37,9 +37,7 @@ if (getCookie('loading') != '') {
       		  	timer =timer+5;
 				$('#loadingDivProgress').html(timer+'%');
 				
-				// change setTimeout to setInterval
-				// setTimeout: calls a function(startTime) only once after 2000 millisecs
-				// setInterval: calls startTime() every 2000 milliseconds
+				
 				var t = window.setTimeout(function(){ startTime(); }, 2000);
 				//var t = window.setInterval(function(){ startTime() }, 2000);
 			} else if (e == -1) {
@@ -66,7 +64,7 @@ if (getCookie('loading') != '') {
 //else, normal visit
 else {
 
-	console.log('normal visit');
+	//console.log('normal visit');
 	$("#emailDiv").show();
 
 	$("#emailDivPlay").click(function () {
@@ -75,26 +73,27 @@ else {
 			$('#emailDivEmail').val('invalid email')
 			return 0;
 		}
-		userDataExists(email, function (exists) {
+		//userDataExists(email, function (exists) {
 			//email data not exist
-			console.log(exists);
-			if (!exists) {
-				console.log('no data for email');
+			//console.log(exists);
+			//if (!exists) {
+				//console.log('no data for email');
 				$('#emailDiv').slideUp();
 				$('#newUserDiv').slideDown();
 				$('#newUserDivEmail').val(email);
 				$("#newUserDivSubmit").click(function () {
 					
-					var serial = $('#newUserDivForm').serialize();
-					console.log('form serial:', serial);
-					var url = "/login?" + serial;
+					//var serial = $('#newUserDivForm').serialize();
+					//console.log('form serial:', serial);
+					var url = "/login"; // + serial;
 					
 					window.location.assign(url);
-					//window.location.assign('/spacegame/index_o.html'); //attempt1
+					
 				});
 				return 0;
-			}
+				//}
 			//email data exists
+			/*
 			else {
 				console.log('yes data for email');
 				$('#emailDiv').slideUp();
@@ -111,7 +110,8 @@ else {
 				
 				return 1;
 			}
-		});
+			*/	
+	//	});
 
 	});
 }
@@ -166,7 +166,8 @@ function userDataExists(email, callback) {
 	var url = "/stats.json?id=getUser&email=" + email; 
 	getJson(url, function (err, json) {
 		if (err) {
-			console.log('errorrr');
+			//console.log('errorrr');
+			console.log(err);
 			callback(0);
 			return 0; //error
 		} else {
@@ -195,7 +196,10 @@ function userDataExists(email, callback) {
  	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.open("GET", url, true);
  	xmlhttp.onreadystatechange = function () {
- 		if (xmlhttp.readyState == 0) {}
+ 		//console.log('ready state changed: ' + xmlhttp.readyState);
+		if (xmlhttp.readyState == 0) {
+ 			//console.log('getJson: xmlhttp readystate is 0');
+ 		}
  		if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
  			//success
  			var res = xmlhttp.responseText;
