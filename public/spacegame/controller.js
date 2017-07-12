@@ -1,4 +1,5 @@
-define(["globals", "utils", "enemy", "./backgroundLine", "./gameInfoDisplay"], function (GLOBAL, Utils, Enemy, BackgroundLine, GameInfoDisplay) {
+define(["globals", "utils", "enemy", "./backgroundLine", "./gameInfoDisplay", 'explosion', 'trashCan', 'cockpit'], 
+function (GLOBAL, Utils, Enemy, BackgroundLine, GameInfoDisplay, Explosion, trashCan, cockpit) {
 	return {
 		update : function (player) {
     
@@ -7,17 +8,18 @@ define(["globals", "utils", "enemy", "./backgroundLine", "./gameInfoDisplay"], f
 				player.shoot();
 			}
 			
-      	  	if(GLOBAL.GAMEMODE=='leftrightonly'){
+      	  	if(GLOBAL.GAMEMODE =='leftrightonly'){
         		//left
+				var speed = 10;
         		if (GLOBAL.KEYDOWN.left) {
-          		  	var speed = GLOBAL.RESTIME;
-          		  	speed = Math.min(Math.max(3, (30000 / speed)), 20);
+          		  	//var speed = GLOBAL.RESTIME;
+          		  	//speed = Math.min(Math.max(3, (30000 / speed)), 20);
           		  	player.x-=speed;
         		}      
         		//right
         		if (GLOBAL.KEYDOWN.right) {
-          		  	var speed = GLOBAL.RESTIME;
-          		 	speed = Math.min(Math.max(3, (30000 / speed)), 20);
+          		  	//var speed = GLOBAL.RESTIME;
+          		 	//speed = Math.min(Math.max(3, (30000 / speed)), 20);
           		  	player.x+=speed;
         		}
       	  	}
@@ -33,14 +35,16 @@ define(["globals", "utils", "enemy", "./backgroundLine", "./gameInfoDisplay"], f
         		}
         		//up
         		if (GLOBAL.KEYDOWN.up) {
-          		  	var speed = GLOBAL.RESTIME;
-          		  	speed = Math.min(Math.max(3, (30000 / speed)), 20);
+          		  	//var speed = GLOBAL.RESTIME;
+					var speed = 10;
+          		  	//speed = Math.min(Math.max(3, (30000 / speed)), 20);
           		  	player.up(speed);
         		}
         		//down
         		if (GLOBAL.KEYDOWN.down) {
-          		  	var speed = GLOBAL.RESTIME;
-          		  	speed = Math.min(Math.max(3, (30000 / speed)), 20);				
+          		  	//var speed = GLOBAL.RESTIME;
+					var speed = 10;
+          		  	//speed = Math.min(Math.max(3, (30000 / speed)), 20);				
           		  	player.down(speed);
         		}
       	  	}
@@ -79,17 +83,29 @@ define(["globals", "utils", "enemy", "./backgroundLine", "./gameInfoDisplay"], f
 			GLOBAL.ENEMIES = GLOBAL.ENEMIES.filter(function (enemy) {
 				return enemy.active;
 			});
+			
+			//update explosion
+			GLOBAL.EXPLOSION = GLOBAL.EXPLOSION.filter(function (explosion){
+				return explosion.active;
+			});
       	  	
       	 	//update GameInfoDisplay
       	  	GameInfoDisplay.update();
       
       		//handle collisions
 			this._handleCollisions(GLOBAL, player, this._collides);
+			
+			//check Life
+			if(GLOBAL.GAMEMODE !='leftrightonly' && GLOBAL.LIFE == 0){
+				this._gameOver()
+			}
 
 			//TODO:break the function into properly isolated functions?
 			var nextEnemy = this._shouldCreateEnemy();
 			
 			if (nextEnemy) {
+				//add up enemy number to ENEMYSUM
+				GLOBAL.ENEMYSUM ++;
 				GLOBAL.HOURENEMYNUMBER++;
 
 				var from = nextEnemy.from;
@@ -105,12 +121,24 @@ define(["globals", "utils", "enemy", "./backgroundLine", "./gameInfoDisplay"], f
 				//var scale = nextEnemy.numOfTo + nextEnemy.numOfCc;
 				//console.log(Number(scale))
 				
+				var enemyAddress = '';
+				var enemyDate = nextEnemy.date || null;
+				if(GLOBAL.GAMEMODE =='leftrightonly'){
+					enemyAddress = nextEnemy.from;
+					scale = 5;
+				}
+				var enemyParam = {color: color, speed: scale, text: enemyAddress, date: enemyDate};
 				
+				/*
 				GLOBAL.ENEMIES.push(Enemy({
 						color : color,
 						//scale : scale
 						speed : scale
 					}));
+				*/
+				GLOBAL.ENEMIES.push(Enemy(enemyParam));
+			} else {
+				
 			}
 			
 			//debug: finding obj with proper size property
@@ -151,136 +179,140 @@ define(["globals", "utils", "enemy", "./backgroundLine", "./gameInfoDisplay"], f
 		_shouldCreateEnemy : function () { //TODO: should not be doing so many things. Break down 
 			var hour = GLOBAL.GAMEHOUR;
 			var inemaildata = GLOBAL.INCOMINGEMAILDATA;
-			//console.log(inemaildata);
+			
 			var totalhourloops = GLOBAL.FPS * GLOBAL.HOURLENGTH; // HOURLENGTH == 20
-			//var numenemies = (inemaildata[hour]) ? inemaildata[hour].length : 0;
-			var numenemies = inemaildata ? inemaildata[hour].length : 0;
+			
+			var numenemies = inemaildata[hour] ? inemaildata[hour].length : 0;
 			GLOBAL.HOURITR++
-			//console.log(GLOBAL.HOURITR);
+			
+			
 			if (GLOBAL.HOURITR > totalhourloops) {
 				//moving to next wave
 				if (GLOBAL.HOURITR > totalhourloops + (2 * GLOBAL.FPS)
 					&& GLOBAL.ENEMIES.length === 0) { 
-					GLOBAL.HOURITR = 0;
-					GLOBAL.HOURENEMYNUMBER = 0;
-					GLOBAL.GAMEHOUR++;
-         		   	GameInfoDisplay.hourSplash();
+					//GLOBAL.HOURITR = 0;
+					//GLOBAL.HOURENEMYNUMBER = 0;
+					//GLOBAL.GAMEHOUR++;
+         		   	//GameInfoDisplay.hourSplash();
 					//reset defeat count
-					GLOBAL.DEFEAT = 0;
+					//GLOBAL.DEFEAT = 0;
+					clearLvl();
 				}
-				//console.log("GLOBAL.HOURITR: " + GLOBAL.HOURITR)
-				//console.log("GLOBAL.GAMEHOUR: " + hour)
-				//console.log("GLOBAL.INCOMINGMAILDATA: ", inemaildata);
-				//console.log("number enemey: " + numenemies);
-				//console.log("total hour loops: " + totalhourloops)
-				//console.log("GLOBAL.ENEMIES.length " + GLOBAL.ENEMIES.length)
-				//console.log(GLOBAL.OUTGOINGEMAILDATA);
-				//console.log(inemaildata);
 				
 				
-				/*
-				//counting all incoming emails
-				function counting(){
-					var count=0;
-					for(val in inemaildata){
-						for(var i=0; i<inemaildata[val].length; i++){
-							count = count+1;
-						};
-					};
-					return count;
-				}
-				var num = counting();
-				console.log(num);
-				*/
-				
-				// TODO: ending scene, summing up
 				// GLOBAL.GAMEHOUR > 23, below is just to debug
-				if(GLOBAL.GAMEHOUR > 23){
-					this._gameOver(GLOBAL.GAMEHOUR);
+				// if all stage is cleared or LIFE == 0, then ends game
+				
+				
+				if(GLOBAL.GAMEHOUR > 2){ //GLOBAL.ENDCOUNT-1){	TODO: restore this for final version
+					this._gameOver();
 				} 
 				
-				//if (GLOBAL.GAMEHOUR > 1) {
-					//alert('Game Over. Refresh page to play again');
-					//this._gameOver();
-					
-					
-					//}
+
 				return 0
 			}
 			if (numenemies === 0) {
+				//set hourSplash to 0 when no enemies in this game time
+				// so that game just proceeds to next stage when no enemy presents at this stage
+				console.log('skipping??');
+				clearLvl();
 				return 0
 			}
 
 			//Todo: fails when numenemies > totalhourloops
 			if (GLOBAL.HOURITR % Math.round(totalhourloops / numenemies) === 0) {
+				//TODO: handle 0 enemy time
+				
 				var nextEnemy = GLOBAL.INCOMINGEMAILDATA[GLOBAL.GAMEHOUR][GLOBAL.HOURENEMYNUMBER];
-				//console.log(GLOBAL.INCOMINGEMAILDATA, GLOBAL.GAMEHOUR, GLOBAL.HOURENEMYNUMBER);
-				//console.log(GLOBAL.HOURITR ,totalhourloops ,numenemies, GLOBAL.HOURITR % Math.round(totalhourloops / numenemies));
-				//console.log(nextEnemy);
+				
 				return nextEnemy;
 			}
 
 			return 0;
 			//return Math.random() < 0.1
+			
+			//reset each stage data for rendering next stage
+			function clearLvl(){
+				GLOBAL.HOURITR = 0;
+				GLOBAL.HOURENEMYNUMBER = 0;
+				GLOBAL.GAMEHOUR++;
+				
+				
+     		   	GameInfoDisplay.hourSplash();
+				//reset defeat count
+				GLOBAL.DEFEAT = 0;
+			}
 		},
 		
+		//cease mainloop
 		_stopGame: function(){
 			clearInterval(GLOBAL.STOPKEY)
 		},
-		//handle gameover message 
-		_gameOver: function(gameHour){
-			//Winning scenario, stay until n rounds
-			// gameHour > n
-			//if(gameHour > 1){
-				
-				//TODO: stop key enactivated 
+		
+		//handle gameover message and tasks afterwards 
+		_gameOver: function(){
+			
+				//clear the setTimeInterval, ending loop 
 				this._stopGame();
-				var page = document.getElementById('gamePage')
-				page.style.display ='';
-				var text = 'YOU WON';
-				page.innerHTML = text;
-				page.style.color = 'white';
 				
-				//TODO: add score view
-			
-				//TODO: BUTTON STYLE 
 				
-				// replay with same account
-				var reButton = document.createElement('div');
-				//console.log(reButton);
-				reButton.style.color = 'white';
-				page.appendChild(reButton);
-				reButton.id = 'reButton';
-				var reText = document.createTextNode('CLICK ME: play again with same account');
-				reButton.appendChild(reText);
-				document.getElementById('reButton').addEventListener('click', function(){
-					// TODO: make sure the path is correct
-					// TODO: remove exit alert when game is ended 
-					//function(){ window.onbeforeunload=null;}
-					window.location.assign('/spacegame');
+				//socket io client side: emit score to server when game ends
+				//TODO: set it separately
+				//call socket io
+				var socket = io.connect('http://localhost:5001');
+				//socket.emit('score', {score: 8989899, email: GLOBAL.EMAIL});
+				
+				//console.log(GLOBAL.INCOMINGEMAILDATA);
+				
+				
+				if(GLOBAL.GAMEMODE == 'leftrightonly'){
 					
-				})
-			
-				// replay with new account
-				var newButton = document.createElement('div');
-				newButton.style.color = 'white';
-				page.appendChild(newButton);
-				newButton.id = 'newButton';
-				var newText = document.createTextNode('CLICK ME: play again with new account');
-				newButton.appendChild(newText);
-				document.getElementById('newButton').addEventListener('click', function(){
-					//TODO: make sure the path is correct
-					window.location.assign('/')
-				})
+					//hide gamePage
+					document.getElementById('statSVG').style.display = 'none';
+					document.getElementById('gamePage').style.display = 'none';
+					
+					//show spamDiv
+					document.getElementById('spamListDiv').style.display = '';
+					
+					//var canvas = document.getElementById('spamCanvas')
+					//canvas.width = (window.innerWidth).clamp(480, 1200);
+					//canvas.height = 200;
+					//var context = canvas.getContext('2d');
+					
+					//TODO:
+					var monitor = document.getElementById('spamCanvas');
+					cockpit.draw(GLOBAL.EMAIL, monitor, 'spamSection', null);
+					
+				}
+				
 				
 				//display data visualization 
-				GameInfoDisplay.visualization(page);
-				//GameInfoDisplay.visOutgoing(page);
+				if(GLOBAL.GAMEMODE=='alldirection'){
+					
+					//update score
+					socket.emit('score', {score: GLOBAL.SCORE, email: GLOBAL.EMAIL});
+					
+					//display the result of game play
+					var page = document.getElementById('gamePage');
+					page.style.display = 'none';
+					
+					//display cockpit image
+					//document.getElementById('endPage').style.display = '';
+					//monitor.style.display = '';
+					var monitor = document.getElementById('endCanvas');
+					
+					//draw cockpit as a resultSection page
+					cockpit.draw(GLOBAL.EMAIL, monitor, 'resultSection', null);
+				
+					
+				}
+				
 				
 				
 				
 				
 		},
+		
 		
 		_collides : function (a, b) {
 			"use strict"
@@ -303,13 +335,12 @@ define(["globals", "utils", "enemy", "./backgroundLine", "./gameInfoDisplay"], f
 
 			GLOBAL.ENEMIES.forEach(function (enemy) {
 				if (_collides(enemy, player)) {
-					// TODO:does it really explodes?
-					// (update) handle explode() with any feedback (i.e. graphic explosion, or damage taken..)
 					
-					// console.log("collides/explodes");
-					// it does..
 					enemy.explode();
 					player.explode();
+					if(GLOBAL.GAMEMODE == 'alldirection'){
+						GLOBAL.LIFE --;
+					}
 					
 				}
 			});
@@ -324,7 +355,6 @@ define(["globals", "utils", "enemy", "./backgroundLine", "./gameInfoDisplay"], f
 
 				var url = '/stats.json?id=getAvgResponseTime&email=' + email;
 				
-				console.log(url);
 				
 				Utils.getJson(url, function (err, json) {
 					if (err){
@@ -337,7 +367,20 @@ define(["globals", "utils", "enemy", "./backgroundLine", "./gameInfoDisplay"], f
 				});
 				return
 			}
-
+			//TODO: insert spam query to url
+			if(incoming == 'spam'){
+				var url = '/stats.json?id=getSpamGameData&email=' + email;
+				Utils.getJson(url, function (err, json) {
+					if (err){
+						callback(err);
+						console.log("error in utils getJson")
+					}
+					else{
+						callback(null, json);
+					}
+				});
+				return;
+			}
 			//Make url
 			incoming = (incoming) ? 1 : 0;
 			
