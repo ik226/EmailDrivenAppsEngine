@@ -13,11 +13,13 @@ define(function () {
 		},
 		
 		UTCHourToLocalHour : function (UTChour) {
+			/*
 			var d = new Date();
       	  	d.setUTCHours(UTChour);
       
       	  	var localHour = d.getHours(); //converts to local timezone;
-      
+      	  	*/
+			var localHour = UTChour;
       	  	var str = "";
       	  	if(localHour<12){
         		str = localHour + ":00 AM";
@@ -26,7 +28,9 @@ define(function () {
       	  	}
       	  	else{
         		str = (localHour-12) + ":00 PM";
-      	  	}      
+      	  	}     
+			
+			 
       	  	return str;
 		},
 		
@@ -52,8 +56,8 @@ define(function () {
 				after it completely received data 
 			*/
 			
+			
 			xmlhttp.open("GET", url, true);
-			xmlhttp.addEventListener('load', function(){ console.log('utils.js getJson is loaded?'); })
 			
 			xmlhttp.onreadystatechange = function () {
 				if (xmlhttp.readyState == 0) {}
@@ -61,12 +65,14 @@ define(function () {
 					//success
 					//console.log(xmlhttp.getResponseHeader('Set-Cookie'));
 					var res = xmlhttp.responseText;
-					console.log(res);
+					//console.log(res);
 					var resJson = JSON.parse(res);
 					callback(null, resJson);
 				} else if (xmlhttp.readyState == 4) {
 					//fail
 					callback('error loading json ' + url);
+				} else if (xmlhttp.status == 100){
+					loadingListener();
 				}
 			}
 			
@@ -82,6 +88,7 @@ define(function () {
 			callback(null, resJson);
 			*/
 		},
+		
 		validateEmail : function (email) {
 			var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
 			if (!emailReg.test(email) || email == '') {

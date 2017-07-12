@@ -23,6 +23,7 @@ var userInfoSchema = mongoose.Schema(
       role: String, //example CU-undergraduate, CU-AcademicStaff etc
       notes: String, //any notes
       loadingStatus: {type: Number, default: 0}
+	  //score: Number
       } 
     );
     

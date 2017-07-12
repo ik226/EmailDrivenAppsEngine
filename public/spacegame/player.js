@@ -12,58 +12,77 @@ define(["globals", "./bullet"], function (GLOBAL, Bullet) {
 		color : "#00A",
 		width : width,
 		height : height,
-    x : GLOBAL.CANVAS_WIDTH / 2 - width/2,
+    	x : GLOBAL.CANVAS_WIDTH / 2 - width/2,
 		y : GLOBAL.CANVAS_HEIGHT - height,
-    angle : 0,
+    	angle : 0,
     
-    up : function(speed){
-      this.x += Math.sin(this.angle)*speed;
-      this.y -= Math.cos(this.angle)*speed;
-      //console.log('up', this.x, this.y, this.angle);
-      GLOBAL.SOUND.play("thrust");
-
-    },
-    down : function(speed){
-      this.x -= Math.sin(this.angle)*speed;
-      this.y += Math.cos(this.angle)*speed;
-      //console.log('down', this.x, this.y, this.angle);
-    },
-    left : function(change){
-      this.angle -= change;
-      //console.log('left', this.x, this.y, this.angle);
-    },
-    right : function(change){
-      this.angle += change;
-      //console.log('right', this.x, this.y, this.angle);
-    },
-    
+    	up : function(speed){
+      	  	this.x += Math.sin(this.angle)*speed;
+      	  	this.y -= Math.cos(this.angle)*speed;
+      	  	//console.log('up', this.x, this.y, this.angle);
+      	  	GLOBAL.SOUND.play("thrust");
+		},
+		
+    	down : function(speed){
+      	  	this.x -= Math.sin(this.angle)*speed;
+      		this.y += Math.cos(this.angle)*speed;
+      	  //console.log('down', this.x, this.y, this.angle);
+    	},
+		
+    	left : function(change){
+      	  	this.angle -= change;
+      		//console.log('left', this.x, this.y, this.angle);
+    	},
+		
+    	right : function(change){
+      	  	this.angle += change;
+      	  	//console.log('right', this.x, this.y, this.angle);
+    	},
     
 		sprite : GLOBAL.SPRITE("player_ship"), //todo:
+		
 		draw : function () {
-			this.sprite.draw(GLOBAL.CANVAS, this.x, this.y, this.width, this.height, this.angle);
+			this.sprite.draw(GLOBAL.CANVAS, this.x, this.y, this.width, this.height, this.angle, null);
 		},
-    drawx : function () {
-      var temp = GLOBAL.CANVAS.fillStyle;
+		
+    	drawx : function () {
+      	  	var temp = GLOBAL.CANVAS.fillStyle;
 			GLOBAL.CANVAS.fillStyle = this.color;
 			GLOBAL.CANVAS.fillRect(this.x, this.y, this.width, this.height);
-      GLOBAL.CANVAS.fillStyle = temp;
+      		GLOBAL.CANVAS.fillStyle = temp;
 		},
+		
 		shoot : function () {
-			if (GLOBAL.OUTGOINGEMAILDATA[GLOBAL.GAMEHOUR].length > 0) { // bullet available
-        console.log(GLOBAL.OUTGOINGEMAILDATA[GLOBAL.GAMEHOUR].pop());
+			//reflection mode
+			if(GLOBAL.GAMEMODE == 'alldirection'){
+				if (GLOBAL.OUTGOINGEMAILDATA[GLOBAL.GAMEHOUR].length > 0) { // bullet available
+	        		//the bullet email
+					//console.log(GLOBAL.OUTGOINGEMAILDATA[GLOBAL.GAMEHOUR].pop());
         
-				GLOBAL.SOUND.play("shoot");
+					GLOBAL.SOUND.play("shoot");
         
+					var bulletPosition = this.midpoint();
+					GLOBAL.PLAYERBULLETS.push(Bullet({
+							angle: this.angle,
+	            			speed : 10,
+							x : bulletPosition.x,
+							y : bulletPosition.y
+						}));
+				} else { // no bullet
+					GLOBAL.SOUND.play("cocking") //TODO: change to nobullet sound
+				}
+			}
+			// spam management mode(left right only)
+			else{
 				var bulletPosition = this.midpoint();
 				GLOBAL.PLAYERBULLETS.push(Bullet({
 						angle: this.angle,
-            speed : 10,
+            			speed : 10,
 						x : bulletPosition.x,
 						y : bulletPosition.y
-					}));
-			} else { // no bullet
-				GLOBAL.SOUND.play("cocking") //TODO: change to nobullet sound
+				}));
 			}
+			
 		},
 		midpoint : function () {
 			return {
