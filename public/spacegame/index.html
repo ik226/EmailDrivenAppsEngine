@@ -3,43 +3,49 @@
   <head>
     <title>Space Demo</title>
     <link href="stylesheets/screen.css" media="all" rel="stylesheet" type="text/css"/>
-    <script   src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"  ></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"  ></script>
     <!--Todo: move all script imports to SGmain-->
     <script src="javascripts/jquery.hotkeys.js" ></script>
     <script src="javascripts/key_status.js" ></script>
     <script src="javascripts/util.js" ></script>
     <script src="javascripts/sprite.js" ></script>
     <script src="javascripts/sound.js" ></script>
+	<script src="//d3js.org/d3.v4.min.js"></script>
+	<script src='javascripts/angular.js'></script>
+	<script src="javascripts/paper-full.js"></script>
+	 <!--socket.io-->
+	<script src="/socket.io/socket.io.js"></script>
     <!---->
-    <script data-main="SGmain" src="require.js"></script>
+    <script src="require.js" data-main="SGmain"></script>
+	 
   </head>
   <body> 
-  <section id="infoPage" style="display:none; font-family: 'Roboto', sans-serif;">
-    <h1>Welcome to Khat-Khail</h1>
-    <h3>A 80's style space invador game that runs on on actual email data.</h3>
-    <p>
-        In Khat-Khail, your incoming emails appear as invadors while your email responses become missiles. The agility of your ship's movement, the rate of incoming invadors and the number of available missiles represent your email characteristics. 
-    </p>
-    <p>
-        Play with own email data or with your collegue's data. See how your inbox characteristics differ from that of other friends and co-workers with this engaging game where you find your way through intimidating invadors.
-    </p>
-    <p id="notes">
-        <strong>Bullets:</strong> proportional to the number of emails to send.
-        <br/>
-        <strong>Enemies:</strong> represent emails your receive.
-        <br/>        
-        <strong>Enemy Color:</strong> tell who the email is from (red: Cornell domain, blue: Facebook mail, green: gmail, hotmail, yahoo, white: others). 
-        <br/>
-        <strong>Enemy Size:</strong> corresponds to the number of recipients of the email (other people who received a copy of the same email).
-        <br/>
-        <strong>Note:</strong>
-        It might turn out that you have more enemies then bullets, just dodge and avoid them just like you would avoid unimportant emails.
-    </p>
-  </section>
+  <div id="infoPage"> <!-- style="display:none;"> -->
+	  <canvas id='modeSelectCanvas'></canvas>
+  </div>
   
   
   <section id="gamePage" style="display:none;">
   </section>
+ 
+  <canvas id='endCanvas'></canvas>
+  <svg id='statSVG'></svg>
+  
+
+  <canvas id='spamCanvas'></canvas>
+		
+  <!-- angularjs binded div: handling spam lists -->
+  <div id='spamListDiv' ng-controller='spamController as emailList' style='display: none;'>
+		<ul id='spamList'>
+			<li ng-repeat="email in emailList.emails">
+				<label>
+					<input type="checkbox" ng-model='email.exclude'> <!-- ng-model-option="{ getterSetter: true }"> -->
+					<span class="exclude-{{email.exclude}}">{{email.text}}</span>
+				</label>
+			</li> 
+		</ul>
+  </div>
+		
   
   </body>
 </html>
