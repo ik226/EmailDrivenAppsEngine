@@ -19,6 +19,8 @@ var mongoDbApi = require('../mongodb/api.js');
 var stats = require('./stats.js');
 var constants = require('../constants.js');
 
+
+
 /*
     @HomePage Route
 */
@@ -83,11 +85,12 @@ exports.login = function (req, res) {
 		email : email,
 		role : role
 	};
-
+	/*
 	res.cookie('emailNrole', cookieVal, {
 		signed : true,
 		maxAge : 3600000
 	})
+	*/
 	res.redirect(url);
 }
 
@@ -101,15 +104,17 @@ exports.login = function (req, res) {
         3. adds userInfo to db
         4. redirects to /getEmails with cookies set (email + access_token)
 */
-exports.oauth2callback = function(req, res){
+exports.oauth2callback = function(req, res, next){
     var auth_code= req.query.code;
-    var emailNrole = req.signedCookies.emailNrole || '';
+    //var emailNrole = req.signedCookies.emailNrole || '';
     
     async.waterfall([
         // getAuthTokens
         function(callback){
             console.log('1...');
             oauth2.getAuthTokens(auth_code, constants.REDIRECT_URI, callback);
+			
+			
         },
         //handleTokens. Request user info
         function(tokens, callback){
@@ -133,21 +138,26 @@ exports.oauth2callback = function(req, res){
         function(userInfo, tokens, callback){
             console.log('3...');
             
-            if (userInfo.email == emailNrole.email && emailNrole.role){
-              console.log('EMAIL MATCH. ASSIGNING ROLE ---<<< ')
-              userInfo.role = emailNrole.role
-            }
+            console.log('EMAIL MATCH.')
             
-            console.log(userInfo);
+            //console.log(tokens);
             
-            mongoDbApi.addUpdateUser(userInfo, tokens)
+            mongoDbApi.addUpdateUser(userInfo, tokens);
+			//set credentials
+            oauth2.setCredentials(tokens);
             
-            var cookieVal = {
-                email: userInfo.email,
-                access_token:tokens.access_token
+			var cookieVal = {
+    				email: userInfo.email,
+                	access_token:tokens.access_token
                 };
             
-            callback(null, cookieVal );
+			//set cookie to /spacegame and redirect to /spacegame
+			// TODO: , signed: true});
+			//https://stackoverflow.com/questions/26810753/express-4-how-to-parse-signed-cookies
+		  	res.cookie('email', cookieVal.email, {path: '/spacegame'}); 
+			res.redirect('/spacegame');
+			
+            callback(null, cookieVal);
         }
     ], //callback   
       function (err, cookieVal) {
@@ -157,9 +167,32 @@ exports.oauth2callback = function(req, res){
             res.send(500, errMsg+err);
         }else{
             //success
-            res.cookie('emailNToken', cookieVal, { signed: true, maxAge: 3600000})
+            //res.cookie('emailNToken', cookieVal, { signed: true, maxAge: 3600000})
             //res.send(cookieVal);
+			/*
+			res.write(JSON.stringify({
+                email: cookieVal.email,
+                access_token:cookieVal.access_token
+                }));
+			console.log(res)
             res.redirect('/getEmails');
+			*/
+			var email = cookieVal.email;
+			var access_token = cookieVal.access_token;
+		    var xoauth2_token = oauth2.buildXoauth2Token(email, access_token)
+  		  	
+			
+  
+		    //update cookie in callback
+		    imap.getEmails(xoauth2_token, email, function () {
+		    	
+		  	    //res.cookie('email', email, {path: '/spacegame'});
+				//res.redirect('/spacegame');
+				
+				
+		    	  
+		    });
+  		  
         }
     });  
     
@@ -175,12 +208,13 @@ exports.oauth2callback = function(req, res){
 */
 exports.getEmails = function(req, res){
   var emailNToken = req.signedCookies.emailNToken;
-  
+  /*
   if (typeof emailNToken === 'undefined'){
     return res.send('No cookies set');
 	}
-  var email = emailNToken.email;
-  var access_token = emailNToken.access_token;
+  */
+  var email = res.email;
+  var access_token = res.access_token;
   
   var xoauth2_token = oauth2.buildXoauth2Token(email, access_token)
   
@@ -203,5 +237,5 @@ exports.getEmails = function(req, res){
   // 														set cookie })
   
   
-  res.redirect('/');
+  res.redirect('/spacegame');
 }
