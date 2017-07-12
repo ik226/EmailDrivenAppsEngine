@@ -1,12 +1,22 @@
 //"use strict"
 
-require(["globals", "utils", "player", "controller", "view"],
-	function (GLOBAL, Utils, player, Controller, View) {
+require(["globals", "utils", "player", "controller", "view", "cockpit", 'gameInfoDisplay'],
+	function (GLOBAL, Utils, player, Controller, View, cockpit, GameInfoDisplay) {
 	//Ran after all requires (and their dependencies have loaded)
 	//var email = Utils.getCookie('hhm38@cornell.edu')
+	
+	//TODO: cookie encrpytion
 	var email = Utils.getCookie('email');
   	email = email.replace("%40", "@");
-  	
+  	GLOBAL.EMAIL = email;
+	
+	//console.log(GLOBAL.CANVAS_WIDTH, GLOBAL.CANVAS_HEIGHT)
+	
+	//draw cockpit for mode selection
+	var canvas = document.getElementById('modeSelectCanvas');
+	//email, canvas, current: 'resultSection' || 'modeSelection', callback: 
+	cockpit.draw(email, canvas, 'modeSelection', start);
+	
   	/*
 	if (!Utils.validateEmail(email)) {
 		//alert(email + ' - invalid cookies. Will redirect to home.');
@@ -15,16 +25,43 @@ require(["globals", "utils", "player", "controller", "view"],
 		return 0;
 	}
 	*/
-	start(email);
 	
-	function start(email) {
+	
+	
+	function start(email, mode) {
 		//return
 		//email = email || 'hhm38@cornell.edu'
 		//document.getElementById("infoPage").style.display = "none";
+		
+		
+		
+		
 		document.getElementById("infoPage").style.display = "none";
 		document.getElementById("gamePage").style.display = "";
-		//for received emails
-		Controller.getGameData(email, true, gameDataCB);
+		//for reflection mode
+		/*
+		switch(_mode){
+			case 'reflection':
+				console.log('running?');
+				Controller.getGameData(email, true, gameDataCB);
+			case 'spam':
+				console.log('spma running?')
+				Controller.getGameData(email, 'spam', spamDataCB);
+		}*/
+		if(mode == 'shooting'){
+			GLOBAL.GAMEMODE = 'leftrightonly'
+			Controller.getGameData(email, 'spam', spamDataCB);
+			
+		} else {
+			GLOBAL.GAMEMODE = 'alldirection'
+			Controller.getGameData(email, true, gameDataCB);
+		}
+		
+		//Controller.getGameData(email, true, gameDataCB);
+		
+		//for spam management mode
+		//Controller.getGameData(email, 'spam', spamDataCB);
+		
 		//console.log('asked for received emails');
 		//for sent emails
 		//Controller.getGameData(email, false, gameDataCB);
@@ -46,10 +83,10 @@ require(["globals", "utils", "player", "controller", "view"],
 				Controller.update(p);
 				View.draw(p);
 			}, 1000 / g.FPS);
-			console.log(GLOBAL.STOPKEY);
+			//console.log(GLOBAL.STOPKEY);
       	  	// TODO: sound on/off
 			//g.SOUND.play("backgroundMusic", 0, true);
-      
+      	 	//Controller._gameOver();
 		}
 		
 		
@@ -72,26 +109,39 @@ require(["globals", "utils", "player", "controller", "view"],
 				//startGame();
 			}
 		}
-
+		function spamDataCB(err, resJson){
+			if(err) console.log(err); 
+			else{
+				console.log(resJson);
+				//var endCount = 0;
+				for(var item in resJson){
+					GLOBAL.ENDCOUNT ++;
+				}
+				//console.log(GLOBAL.ENDCOUNT);
+				GLOBAL.INCOMINGEMAILDATA = resJson;
+				//set first splash info for shooting mode
+				GameInfoDisplay.setFirstSplashInfo();
+				startGame();
+			}
+		}
 		//gamedata callback
 		function gameDataCB(err, incoming, resJson) {
 			if (err) {
-				//TODO: handle error message in html 
-				//(update) add styles 
-				
-				// solution: instead of displaying error as alert message, 
-				// added text as html element
-				// however, the game runs behind regardlessly at #gamePage, which is hidden forcefully.
-				//
 				console.log(err);
 				
 				return;
 			}
 			else{
+				for(var item in resJson){
+					GLOBAL.ENDCOUNT ++;
+				}
 				GLOBAL.INCOMINGEMAILDATA = resJson.incoming;
 				GLOBAL.OUTGOINGEMAILDATA = resJson.outgoing;
 				//console.log(resJson);
+				
+				//TODO: for dev purpose
 				startGame();
+				//Controller._gameOver();
 			}
 			//GLOBAL.LOADING--;
 			/*
