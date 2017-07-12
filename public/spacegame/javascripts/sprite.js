@@ -17,7 +17,7 @@
     height = height || image.height;
     
     return {
-      draw: function(canvas, x, y, newWidth, newHeight, angle) {
+      draw: function(canvas, x, y, newWidth, newHeight, angle, text) {
         
         angle = angle || 0;
         
@@ -47,7 +47,11 @@
           canvas.restore();
           return
         }
-        
+        //render email address if text is given 
+		if(text){
+			canvas.fillStyle = '#FFFFFF';
+			canvas.fillText(text, x-20, y-10);
+		}
         
       },
       
