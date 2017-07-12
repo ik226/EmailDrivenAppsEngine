@@ -21,7 +21,7 @@ module.exports = function (req, res) {
 	//TODO: remove data
 	if (id == 'removeUser'){
 		var email = req.query.email;
-		mongoDbApi.removeAllEmailMsg;
+		//mongoDbApi.removeAllEmailMsg;
 	}
 	
 	//whenever the app request user data from db, 
@@ -44,21 +44,17 @@ module.exports = function (req, res) {
 							newToken.access_token = user[0].access_token;
 							newToken.refresh_token = user[0].refresh_token;
 					
-							//request new access token 
+							//request new access token
+							/* 
 							oauth2.genNewAccessToken(newToken, function(err, tokens){
 								var accessToken = tokens.access_token;
 								xoauth2_token = oauth2.buildXoauth2Token(email, accessToken);
 								//request imap to get emails
 								imap.getEmails(xoauth2_token, email, function(result){
-							//console.log(result);
-							//res.send(200, JSON.stringify(user, null, "  "));
-								}); //, function(){
-							//here?
-							//mongoDbApi.setUserLoadingStatus(email, 1); 
-							//});
-							//console.log(tokens);
+							
+								}); 
 							});
-					
+							*/
 		      	  			res.status(200).send(JSON.stringify(user, null, "  "));
 						}
 					}
@@ -169,6 +165,11 @@ module.exports = function (req, res) {
 	
 	if (id == "getSpaceGameData") {
 		email = req.query.email;
+		
+		//TODO: need to do getUser to check whether one's access token is not expired 
+		//		so that one cannot bypass login process
+		
+		
 		//incoming = req.query.incoming == true ? true : false;
 		//console.log(email, incoming);
 
@@ -178,14 +179,14 @@ module.exports = function (req, res) {
 		async.waterfall([
 			function(callback){
 				mongoDbApi.getEmailsGroupedByHour(email, true, function (err, results) {
-					if (err) { callback(err); }
+					if (err) { return callback(err); }
 					resFinal['incoming'] = results;
 					callback(null, resFinal);
 				});
 			},
 			function(resFinal, callback){
 				mongoDbApi.getEmailsGroupedByHour(email, false, function (err, results) {
-					if (err) { callback(err); }
+					if (err) { return callback(err); }
 					resFinal['outgoing'] = results;
 					callback(null, resFinal);
 				});
@@ -236,5 +237,96 @@ module.exports = function (req, res) {
 	//res.write(JSON.stringify(responseData));
 	//res.end();
 	 */
+	if(id == 'getSpamGameData'){
+		var email = req.query.email;
+		mongoDbApi.getSpamsByWeek(email, function(err, results){
+			/*
+			var mapped = results.map(function(doc){
+				var mapResult = {};
+				mapResult.from = doc.from[0];
+				mapResult.numOfTo = doc.to.length;
+				mapResult.numOfCc = doc.cc.length;
+				mapResult.date = doc.date;
+				return mapResult;
+			});
+			var newResults = {0: mapped};
+			*/
+			
+			if (err) {
+				res.writeHead(500, {
+					"Content-Type" : "application/json"
+				});
+				res.write(JSON.stringify(' error : stats.js : 05 : ' + err));
+				res.end();
+				return
+			}
+			res.writeHead(200, {
+				"Content-Type" : "application/json",
+				
+			});
+			//res.cookie('emailType','email');
+			//res.write(JSON.stringify(newResults, null, "  "));
+			res.write(JSON.stringify(results, null, "  "));
+			res.end();
+		})
+		
+	}
+	
+	//handle post request for spam labeling
+	if(id == 'postSpamData'){
+		//if(spamData){console.log('spam received'); }
+		//console.log(typeof spamData);
+		//var ress = JSON.parse(spamData);
+		var spamData = req.body;
+		//console.log('ress: ' + ress, typeof(ress));
+		//console.log(res[0]);
+		//console.log(ress);
+		
+		
+		var queryParam = [];
+		spamData.forEach(function(d){
+			var q = {};
+			q.from = d.text;
+			q.date = new Date(d.date);
+			q.user = d.user;
+			queryParam.push(q);
+			
+		});
+		
+		 
+		mongoDbApi.getEmailID(queryParam, function(err, success){
+			if(err) console.log(err);
+			//var testOne = success[0].msgid;
+			//console.log("is this the result??: " + success);
+			//console.log(success);
+			
+			//var msgId = success[0].msgid;
+			var msgId = success.map(function(d){
+				return d.msgid;
+			});
+			var newLabel = 'SPAM';
+			
+			//oauth2.getUserEmailLabels(email, function(err, success){
+			//	if(err) console.log(err);
+			//	console.log(success);
+			//});
+			
+			//add SPAM label to this email
+			oauth2.modifyEmailLabel(msgId, newLabel, function(err, success){
+				if(err) console.log(err);
+				//console.log(success);
+				res.end();
+			});
+			
+			//TODO: modify those emails spam status in mongodb 
+			
+			//oauth2.getOneEmail(msgId, function(err, success){
+			//	if(err) console.log(err);
+			//	console.log(success);
+			//});
+			
+		});
+		
+	}
 
 }
