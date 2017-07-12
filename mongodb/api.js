@@ -1,5 +1,49 @@
+var async = require('async');
 var UserInfo = require('./userInfoModel.js');
 var EmailMsg = require('./emailMsgModel.js');
+
+//test: user score schema
+var UserScore = require('./score.js');
+
+//update score
+/*
+exports.addUpdateScore = function(user, gameScore, callback){
+	var newScore = new UserScore({email: user, score: gameScore});
+	console.log('from api.js: ' + newScore);
+	newScore.save(function(err, score){
+		if(err) return console.log(err);
+	})
+}
+*/
+
+exports.addUpdateScore = function ( user, gameScore, callback ) {
+	//var collection = db.collection ;
+	var collection = UserScore ;
+
+	if (!collection.findOne(  {email : user} )){
+		var newscore = new UserScore({email: user, score  : gameScore});
+		newscore.save(function(err,raw){
+			if(err) console.log(err); return;
+			console.log('new score saved?? '+raw);
+		});
+	
+	}
+
+
+	else {
+		//console.log('new score else phase!')
+		var scoreInfo = {
+			email: user,
+			score: gameScore
+		};
+	
+		collection.update(
+			{email :  user},
+			scoreInfo,
+			callback) ;
+
+	}
+}
 
 // Adds the user if it does not exist. Else update it.
 exports.addUpdateUser = function (info, tokens) {
@@ -50,6 +94,25 @@ exports.getAllUsers = function (callback) {
 			callback(null, users)
 		}
 	});
+}
+
+//batch query email ids
+//@param {list} param - email address, date
+//@return {list} list of email ids  
+exports.getEmailID = function(param, callback){
+	async.concat(param, asyncFunc, callback);
+	function asyncFunc(arg, cb){
+		return EmailMsg.find(arg, {msgid:1}).exec(cb);
+	};
+		
+}
+
+//update emailmsg's spam attribute
+//TODO: search one another one and add to stream
+// try $in and query only msgId
+//@param {Object} param - {email, date}
+exports.updateOneEmailToSpam = function(email, callback){
+	EmailMsg.findOneAndUpdate({from:email}, {$set:{spam: true}}, {new: true}, callback);
 }
 
 // Adds email msg if it does not exist. Else update it.
@@ -305,7 +368,7 @@ exports.getResponseTimes = function (email, callback) {
 			if (val.length < 2)
 				return resTime //0 or 1 email in thread
 
-				var replyPending = 0; //un-replied incoming email
+			var replyPending = 0; //un-replied incoming email
 			if (email !== val[0].from[0]) {
 				replyPending = 1;
 			} //1st was incoming
@@ -347,58 +410,67 @@ exports.getResponseTimes = function (email, callback) {
 
 }
 
-// Return emailsGroupedByHour for a user
+// Return emailsGroupedByHour for a user of emails within 30days
 exports.getEmailsGroupedByHour = function (email, incoming, callback) {
 	//console.log("\n\n\nGet EmailsGroupedByHour:\n\n")
 	//mongodb mapReduce doc at http://docs.mongodb.org/manual/core/map-reduce/
 	//console.log(this);
+	var monthBeforeToday = new Date().subtractDays(29);//.toDateString();
 	
 	var o = {};
+	
 	o.scope = {
-		email : email
+		'email' : email
 	};
 	
 	if (incoming === true){
 		o.query = {
-			user : email,
-			from : {
-				$ne : [[email]]
-			}
-		}
+			'user' : email,
+			'from' : { '$ne' : [email] },
+			'date': { '$gte' : monthBeforeToday }
+		};
 	} //query filter
 	else{
 		o.query = {
-			user : email,
-			from : [[email]]
-		}
-	} //map function emits (key: hour, value: {To,CC,From,size}) pair
+			'user' : email,
+			'from' : [email],
+			'date' : { '$gte': monthBeforeToday }
+			
+		};
+	}
+	
+	//map function emits (key: hour, value: {To,CC,From,size}) pair
 	o.map = function () { //map func each msg
 		//printjson(this);
 		var hour;
-		if (!this.date instanceof Date) //if this.date is not Date obj
+		if (!this.date instanceof Date) {//if this.date is not Date obj
 			hour = -1;
-		else
+		}
+		else {
 			hour = this.date.getUTCHours();
+		}
 		var value = {
 			numOfTo : [this.to.length],
 			numOfCc : [this.cc.length],
 			from : [this.from[0]],
 			//add size
 			//size: this.size || 0
-			size : [this.size ? this.size : 0]
+			size : [this.size ? this.size : 0],
+			date : [this.date]
 		};
 		//printjson(value);
 		emit(hour, value)
 	}
 	o.reduce = function (hour, values) { //reduce func
-		printjson(values);
+		//printjson(values);
 		var ans = {
 			numOfTo : [],
 			numOfCc : [],
 			from : [],
 			//add size of email
 			//size: 0
-			size: []
+			size: [],
+			date: []
 			
 			
 		};
@@ -412,7 +484,8 @@ exports.getEmailsGroupedByHour = function (email, incoming, callback) {
 				
 				//assign size
 				//ans.size = entry.size;
-				ans.size.push[entry.size[i]];
+				ans.size.push(entry.size[i]);
+				ans.date.push(entry.date[i]);
 				
 			}
 		});
@@ -437,8 +510,10 @@ exports.getEmailsGroupedByHour = function (email, incoming, callback) {
 			obj.from = reducedValue.from[i];
 			//obj.size = reducedValue.size[i];
 			obj.size = reducedValue.size[i];
-			hourDataArray.push(obj)
+			obj.date = reducedValue.date[i];
+			hourDataArray.push(obj);
 		}
+		//printjson(hourDataArray);
 		return hourDataArray;
 	}
 
@@ -447,19 +522,125 @@ exports.getEmailsGroupedByHour = function (email, incoming, callback) {
   
 	EmailMsg.mapReduce(o, function (err, results) {
 		//callback(err, results); return results //for debug
-		
+		//console.log('result length', results.length);
+		/*
 		if (results.length == 0) {
 			err = "no results for email: " + email;
 		}
-
+		*/
+		if(err) callback(err);
 		var hoursData = {};
 		
 		
 		for (var i = 0; i < results.length; i++) {
 			hoursData[results[i]._id] = results[i].value
 		}
-		//console.log(hoursData);
-		callback(err, hoursData)
-	})
+		//console.log('hour data',hoursData);
+		callback(err, hoursData);
+	});	
 
+}
+
+// Return incoming emails within 7days for spam management game mode
+exports.getSpamsByWeek = function(email, callback){
+	//get dates of a week ago
+	var weekBeforeToday = new Date().subtractDays(7).toDateString();
+	
+	var o = {};
+	o.query = {'user': email, 'date': {'$gte': new Date(weekBeforeToday)}, 'spam': false};
+	o.sort = {'date': 1}
+	o.map = function () { //map func each msg
+		
+		var day;
+		if (!this.date instanceof Date) {//if this.date is not Date obj
+			day = -1;
+		}
+		else {
+			day = this.date.getUTCDate();
+		}
+		var value = {
+			numOfTo : [this.to.length],
+			numOfCc : [this.cc.length],
+			from : [this.from[0]],
+			date : [this.date]
+		};
+		//printjson(value);
+		emit(day, value);
+	};
+	
+	o.reduce = function (day, values) { //reduce func
+		//printjson(day, values);
+		var ans = {
+			numOfTo : [],
+			numOfCc : [],
+			from : [],
+			date: []
+			
+			
+		};
+		
+		values.forEach(function (entry) {
+			//printjson(entry);
+			for (var i = 0; i < entry.numOfTo.length; i++) {
+				ans.numOfTo.push(entry.numOfTo[i]);
+				ans.numOfCc.push(entry.numOfCc[i]);
+				ans.from.push(entry.from[i]);
+				ans.date.push(entry.date[i]);
+				
+			}
+		});
+		//printjson(ans);
+		return ans;
+	};
+	
+	o.finalize = function (day, reducedValue) {
+		//THIS IS CALLED ONCE PER KEY(day)
+		//return reducedValue //for debug
+
+		/* convert to array of objs (from obj of arrays)
+		input:
+	{"numOfTo": [], "numOfCc":[], "from":[]}
+		output :
+		[ {"numOfTo": 1, "numOfCc": 5,"from":"hhm38@cu.edu"}, {...}, ...]
+		 */
+		//printjson(day);
+		//printjson(reducedValue);
+		var dayDataArray = [];
+		for (var i = 0; i < reducedValue.numOfTo.length; i++) {
+			var obj = {};
+			obj.numOfTo = reducedValue.numOfTo[i];
+			obj.numOfCc = reducedValue.numOfCc[i];
+			obj.from = reducedValue.from[i];
+			//obj.size = reducedValue.size[i];
+			obj.date = reducedValue.date[i];
+			dayDataArray.push(obj)
+		}
+		return dayDataArray;
+	}
+
+	//results is an array of [{_id:hour, value:hourDataArray}]
+  	//hoursData is object {hour: hourDataArray, hour2:hour2DataArray...}
+  
+	EmailMsg.mapReduce(o, function (err, results) {
+		//callback(err, results); return results //for debug
+		/*
+		if (results.length == 0 && incoming == true) {
+			err = "no results for email: " + email;
+		}
+		*/
+		if (err) callback(err)
+		var daysData = {};
+		
+		
+		for (var i = 0; i < results.length; i++) {
+			//daysData[results[i]._id] = results[i].value
+			daysData[i] = results[i].value;
+		}
+		
+		callback(err, daysData);
+	});
+	//EmailMsg.find({'user': email, 'date': {'$gte': weekBeforeToday}, 'spam': false}, callback);
+		
+	
+	
 }
