@@ -1,7 +1,7 @@
 //A module definition.
 // enemy function
 
-define(["globals"], function (GLOBAL) {
+define(["globals", 'explosion'], function (GLOBAL, Explosion) {
 	return function (I) {
 	
 	I = I || {};
@@ -64,15 +64,19 @@ define(["globals"], function (GLOBAL) {
 	};
 
 	I.sprite = GLOBAL.SPRITE("enemy_"+I.color);
-
+	
+	if(!this.text){ this.text = null; }
+	
+	I.canvas = GLOBAL.CANVAS;
+	
 	I.draw = function () {
       //this.sprite.fill(GLOBAL.CANVAS, this.x, this.y, this.width, this.height, '',this.color)
 			//this.sprite.fill(GLOBAL.CANVAS, this.x, this.y, this.width, this.height, '');
       //this.sprite.draw(GLOBAL.CANVAS, this.x, this.y);
-      this.sprite.draw(GLOBAL.CANVAS, this.x, this.y, this.width, this.height, this.angle);
+      this.sprite.draw(this.canvas, this.x, this.y, this.width, this.height, this.angle, this.text);
     
 	};
-
+	
 	I.update = function () {
 		I.x += I.xVelocity;
 		I.y += I.yVelocity;
@@ -88,14 +92,27 @@ define(["globals"], function (GLOBAL) {
 	};
 
 	I.explode = function () {
-		GLOBAL.SOUND.play("explosion");
-
+		if(GLOBAL.GAMEMODE == 'leftrightonly'){
+			GLOBAL.CAPTURED.push(this);
+		}
+		//GLOBAL.SOUND.play("explosion"); TODO: restore for final version
+		
 		this.active = false;
-		// TODO: Extra Credit: Add an explosion graphic
+		
+		//add explosions 
+		GLOBAL.EXPLOSION.push(Explosion({
+			x: this.x,
+			y: this.y,
+			
+		}));
 		
 		//defeat counts
 		GLOBAL.DEFEAT++;
 	};
+	
+	I.test = function(){
+		console.log('calling test by creation of enemy obj');
+	}
 
 	return I;
 	};
