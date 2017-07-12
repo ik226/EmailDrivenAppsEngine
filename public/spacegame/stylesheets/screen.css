@@ -20,18 +20,60 @@ p {
   color:darkcyan;
 }
 
-#notes{
-  padding-left:3%;
-  color:darkolivegreen;
+ul{
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
 }
 
-section {
-  padding:10%;
-  padding-left:10%;
+#infoPage {
+	position: absolute;
 }
 
-section#gamePage {
+#modeSelectCanvas{
+	position: absolute;
+}
+
+#gamePage {
   padding:0%;
   padding-left:0%;
   text-align:center;
+  position: absolute;
 }
+
+#endCanvas{
+	position: absolute;
+}
+
+#statSVG {
+	position: relative;
+}
+
+#spamCanvas{
+	position: absolute;
+}
+
+#spamListDiv{
+	position: relative;
+	overflow-y: auto;
+	
+}
+#spamList{
+	color: #aef704;
+	font-family: 'Helvetica', arial, sans-serif;
+	
+}
+
+.exclude-true{
+	text-decoration: line-through;
+	color: grey;
+}
+
+.svgfont{
+	font-family: 'Helvetica', arial, sans-serif;
+}
+
+.calendar-text{
+	font-family: 'Helvetica', arial, sans-serif;
+}
+
