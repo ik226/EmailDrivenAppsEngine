@@ -204,7 +204,7 @@ function (GLOBAL, Utils, Enemy, BackgroundLine, GameInfoDisplay, Explosion, tras
 				// if all stage is cleared or LIFE == 0, then ends game
 				
 				
-				if(GLOBAL.GAMEHOUR > 2){ //GLOBAL.ENDCOUNT-1){	TODO: restore this for final version
+				if(GLOBAL.GAMEHOUR > 0){ //GLOBAL.ENDCOUNT-1){	TODO: restore this for final version
 					this._gameOver();
 				} 
 				
