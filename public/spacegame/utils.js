@@ -13,25 +13,31 @@ define(function () {
 		},
 		
 		UTCHourToLocalHour : function (UTChour) {
-			/*
-			var d = new Date();
-      	  	d.setUTCHours(UTChour);
-      
-      	  	var localHour = d.getHours(); //converts to local timezone;
-      	  	*/
-			var localHour = UTChour;
-      	  	var str = "";
-      	  	if(localHour<12){
-        		str = localHour + ":00 AM";
-      	  	}else if (localHour == 12 ){
-        		str = localHour + " Noon";
-      	  	}
-      	  	else{
-        		str = (localHour-12) + ":00 PM";
-      	  	}     
-			
-			 
-      	  	return str;
+      var d = new Date();
+      d.setUTCHours(UTChour);
+      var localHour = UTChour;
+      var str = "";
+      if(localHour<12){
+        str = localHour + ":00 AM";
+      } else if (localHour == 12 ){
+        str = localHour + " Noon";
+      } else {
+          str = (localHour-12) + ":00 PM";
+      }     
+      return str;
+            
+      var localHour = d.getHours(); //converts to local timezone;
+			var str = "";
+			if(localHour==0) {
+				str = "12:00AM (Midnight)";
+			}else if (localHour==12){
+				str = localHour+":00PM (Noon)";
+			}else if(localHour<12){
+ 				str = localHour + ":00AM";
+			}else{
+				str = (localHour-12)+":00PM";
+			}      
+			return str;
 		},
 		
 		getJson : function (url, callback) {
